@@ -6,7 +6,671 @@
 <title>pedantic about statistics — three metric settings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pedantic about statistics — three metric settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,700&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#141B2D;
+    --panel:#1B2440;
+    --panel-2:#212C4C;
+    --ink:#E9E5D8;
+    --dim:#8C95AC;
+    --line:#3A4568;
+    --gold:#E8B33C;
+    --teal:#4FB0A5;
+    --slot: 1fr;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    padding:34px 22px 64px;
+  }
+  .wrap{max-width:860px;margin:0 auto}
+
+  /* ---------- hero ---------- */
+  .hero{border-bottom:1px solid var(--line);padding-bottom:30px;margin-bottom:30px}
+  .phrase{
+    font-family:"Bodoni Moda",Didot,"Bodoni MT",Georgia,serif;
+    font-size:clamp(30px,7.2vw,60px);
+    line-height:1.05;
+    display:flex;flex-wrap:wrap;align-items:baseline;
+    gap:0 .18em;
+    margin:0 0 14px;
+    font-weight:400;
+  }
+  .phrase .w{display:inline-flex;align-items:baseline}
+  .phrase .s{font-weight:700;color:var(--gold);position:relative;top:-.045em}
+  .phrase .u{color:var(--dim);font-size:.66em;font-weight:400}
+  .hero p{max-width:62ch;color:var(--dim);margin:0;font-size:15px}
+  .hero p em{color:var(--ink);font-style:normal}
+
+  /* ---------- controls ---------- */
+  .controls{
+    display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;
+    padding:14px 0 22px;border-bottom:1px solid var(--line);margin-bottom:8px;
+  }
+  .tempo{display:flex;align-items:center;gap:12px;flex:1 1 280px}
+  .tempo label{color:var(--dim);font-size:14px;white-space:nowrap}
+  .tempo output{color:var(--gold);font-variant-numeric:tabular-nums;font-size:14px;min-width:3.4em}
+  input[type=range]{flex:1;accent-color:var(--gold);min-width:120px;height:22px}
+  .toggle{
+    background:none;border:1px solid var(--line);color:var(--dim);
+    font:inherit;font-size:14px;padding:6px 14px;border-radius:2px;cursor:pointer;
+  }
+  .toggle[aria-pressed=true]{border-color:var(--teal);color:var(--teal)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .seg button{
+    background:none;border:none;color:var(--dim);font:inherit;font-size:14px;
+    padding:6px 15px;cursor:pointer;
+  }
+  .seg button + button{border-left:1px solid var(--line)}
+  .seg button:hover{color:var(--ink)}
+  .seg button[aria-pressed=true]{background:var(--panel-2);color:var(--gold)}
+  .toggle:hover{border-color:var(--dim);color:var(--ink)}
+  .toggle[aria-pressed=true]:hover{color:var(--teal)}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* ---------- setting panels ---------- */
+  .setting{padding:30px 0;border-bottom:1px solid var(--line)}
+  .setting:last-of-type{border-bottom:none}
+  .head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .meter{
+    font-family:"Bodoni Moda",Didot,Georgia,serif;
+    font-size:30px;font-weight:700;line-height:1;
+  }
+  .head .role{color:var(--dim);font-size:14px;flex:1}
+  .play{
+    background:var(--gold);color:#141B2D;border:none;border-radius:2px;
+    font:inherit;font-weight:600;font-size:14px;padding:8px 20px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .play:hover{background:#F2C25C}
+  .play[data-on=true]{background:var(--teal)}
+  .play .glyph{font-size:11px}
+
+  /* ---------- grid ---------- */
+  .scroll{overflow-x:auto;margin:20px -2px 12px;padding-bottom:2px}
+  .grid{
+    display:grid;grid-template-columns:repeat(var(--n),minmax(44px,1fr));
+    position:relative;min-width:100%;
+  }
+  .cell{position:relative;padding:0 2px}
+  .cell.pickup{opacity:.62}
+  .mark{
+    height:16px;text-align:center;color:var(--teal);
+    font-size:13px;line-height:16px;
+  }
+  .syl{
+    font-family:"Bodoni Moda",Didot,Georgia,serif;
+    text-align:center;font-size:clamp(12px,2.5vw,19px);
+    padding:4px 0 5px;white-space:nowrap;
+  }
+  .syl.stress{font-weight:700;color:var(--ink)}
+  .syl.weak{color:var(--dim);font-size:clamp(10px,2vw,15px)}
+  .bed{
+    height:26px;border-top:1px solid var(--line);
+    border-left:1px solid transparent;position:relative;
+  }
+  .cell.bar .bed{border-left:2px solid var(--ink)}
+  .cell.bar .mark,.cell.bar .syl{box-shadow:inset 2px 0 0 -1px transparent}
+  .pulse{
+    position:absolute;left:50%;top:9px;transform:translateX(-50%);
+    width:5px;height:5px;border-radius:50%;background:var(--line);
+  }
+  .cell.pulse-on .pulse{background:var(--teal)}
+  .cell.pulse-accent .pulse{background:var(--teal);width:8px;height:8px;top:7px}
+  .cell.lit .bed{background:rgba(232,179,60,.22)}
+  .cell.lit .syl{color:var(--gold)}
+  .hold{
+    position:absolute;top:calc(50% - 1px);left:8%;right:-92%;height:2px;background:var(--dim);
+    opacity:.7;
+  }
+  .caption{color:var(--dim);font-size:14.5px;max-width:64ch;margin:0}
+  .caption b{color:var(--ink);font-weight:500}
+
+  .group{padding:34px 0 4px}
+  .group h2{
+    font-family:"Bodoni Moda",Didot,Georgia,serif;
+    font-size:21px;font-weight:500;margin:0 0 6px;
+  }
+  .group p{margin:0;color:var(--dim);font-size:14.5px;max-width:64ch}
+  .tag{
+    font-size:12.5px;color:var(--dim);border:1px solid var(--line);
+    border-radius:999px;padding:2px 11px;white-space:nowrap;
+  }
+  .tag[data-fit=stretched]{color:var(--gold);border-color:rgba(232,179,60,.45)}
+
+  .note{
+    margin-top:34px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--dim);font-size:14px;max-width:64ch;
+  }
+  .fail{color:var(--gold);font-size:14px;margin:12px 0 0}
+  @media (max-width:520px){
+    .syl{letter-spacing:-.02em}
+    body{padding:26px 14px 54px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1 class="phrase" aria-label="pedantic about statistics">
+      <span class="w"><span class="u">pe</span><span class="s">dan</span><span class="u">tic</span></span>
+      <span class="w"><span class="u">a</span><span class="s">bout</span></span>
+      <span class="w"><span class="u">sta</span><span class="s">tis</span><span class="u">tics</span></span>
+    </h1>
+    <p>Eight syllables, three stresses, spaced <em>3 – 2 – 3</em>. Ten meters below try to accommodate that, with varying success. Press play on any of them.</p>
+  </header>
+
+  <div class="controls">
+    <div class="tempo">
+      <label for="tempo">Tempo</label>
+      <input id="tempo" type="range" min="120" max="320" step="5" value="210">
+      <output id="tempoOut" for="tempo">210 syll/min</output>
+    </div>
+    <div class="seg" role="group" aria-label="Sound">
+      <button id="modeTone" aria-pressed="false">Tone</button>
+      <button id="modeVoice" aria-pressed="true">Voice</button>
+    </div>
+    <button class="toggle" id="clickBtn" aria-pressed="true">Click track</button>
+    <button class="toggle" id="loopBtn" aria-pressed="true">Loop</button>
+  </div>
+  <p class="fail" id="fail" hidden>Audio could not start in this browser. The grids below still show the placements.</p>
+
+  <main id="settings"></main>
+
+  <p class="note" id="closing"></p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SYLL = [
+    {t:"pe",   stress:false},
+    {t:"dan",  stress:true },
+    {t:"tic",  stress:false},
+    {t:"a",    stress:false},
+    {t:"bout", stress:true },
+    {t:"sta",  stress:false},
+    {t:"tis",  stress:true },
+    {t:"tics", stress:false}
+  ];
+
+  // slot -1 is the pickup; slot 0 is the first downbeat of the phrase.
+  // span === cycle, so every grid shows exactly one full loop.
+  var NAT  = [{s:-1,i:0},{s:0,i:1},{s:1,i:2},{s:2,i:3},{s:3,i:4},{s:4,i:5},{s:5,i:6},{s:6,i:7}];
+  var HELD = [{s:-1,i:0},{s:0,i:1},{s:1,i:2},{s:2,i:3},{s:3,i:4,hold:2},{s:5,i:5},{s:6,i:6},{s:7,i:7}];
+
+  var SETTINGS = [
+    {
+      group:"Holding the gap",
+      groupNote:"The line's missing syllable becomes a hold on “bout”. Both settings below put the onsets on exactly the same eighths — only the barline moves.",
+      id:"sixeight", meter:"6/8", fit:"unstretched",
+      role:"compound duple — the amphibrachs get their lilt",
+      cycle:12, places:HELD,
+      bars:[0,6], pulses:[0,3,6,9], accents:[0,6],
+      caption:"<b>bout</b> is held across the empty sixth eighth, so the missing syllable becomes a breath rather than a stumble. <b>tis</b> then lands on the downbeat of the second bar."
+    },
+    {
+      id:"nineeight", meter:"9/8", fit:"unstretched",
+      role:"compound triple — the whole line inside one bar",
+      cycle:9, places:HELD,
+      bars:[0], pulses:[0,3,6], accents:[0],
+      caption:"The same rhythm as the 6/8, rebarred. The three stresses are now the three pulses of a single bar, which is what the amphibrachic reading wanted all along — a jig with one syllable missing from its middle foot."
+    },
+    {
+      group:"Seven straight eighths",
+      groupNote:"Every syllable on its own eighth: nothing held, nothing inserted. Five meters, one identical rhythm. All that changes is where the barlines and the click fall.",
+      id:"aksak", meter:"8/8", fit:"unstretched",
+      role:"grouped 3+2+3 — every stress on a downbeat",
+      cycle:8, places:NAT,
+      bars:[0], pulses:[0,3,5], accents:[0],
+      caption:"The bar stops pretending its beats are even. <b>dan</b>, <b>bout</b> and <b>tis</b> each start a group, and the line closes on a rest."
+    },
+    {
+      id:"fourfour", meter:"4/4", fit:"unstretched",
+      role:"the even pulse — two stresses land off the beat",
+      cycle:8, places:NAT,
+      bars:[0], pulses:[0,2,4,6], accents:[0],
+      caption:"Only the click moved. <b>bout</b> and <b>tis</b> now fall between beats and the line turns syncopated — which is probably what you would get if someone sang it without thinking about it."
+    },
+    {
+      id:"seveneight", meter:"7/8", fit:"unstretched",
+      role:"grouped 2+2+3 — fits the bar, fights the stresses",
+      cycle:7, places:NAT,
+      bars:[0], pulses:[0,2,4], accents:[0],
+      caption:"Seven syllables in seven eighths with nothing left over, the tightest fit on the page. But 2+2+3 puts its accents on <b>dan</b>, <b>a</b> and <b>sta</b>: one hit, two misses."
+    },
+    {
+      id:"fiveeight", meter:"5/8", fit:"unstretched",
+      role:"grouped 3+2 — the aksak reading, barred in fives",
+      cycle:10, places:NAT,
+      bars:[0,5], pulses:[0,3,5,8], accents:[0,5],
+      caption:"The 3+2+3 grouping cut into bars of five, so the final group opens the second bar. Every stress still starts a group; the cost is that the line runs a bar and a half and leaves a long tail."
+    },
+    {
+      id:"threefour", meter:"3/4", fit:"unstretched",
+      role:"waltz — the line and the bar disagree",
+      cycle:12, places:NAT,
+      bars:[0,6], pulses:[0,2,4,6,8,10], accents:[0,6],
+      caption:"Three has no use for a 3-2-3 line. <b>bout</b> and <b>tis</b> fall between beats, and <b>tics</b> — the throwaway syllable — gets handed the downbeat of bar two."
+    },
+    {
+      group:"Stretched to fit",
+      groupNote:"Rests and holds inserted so that each stress can take a strong beat. The meter wins and the phrase gets pulled out of shape.",
+      id:"twofour", meter:"2/4", fit:"stretched",
+      role:"march — one stress per bar, three bars",
+      cycle:12,
+      places:[{s:-1,i:0},{s:0,i:1},{s:1,i:2},{s:3,i:3},{s:4,i:4,hold:3},{s:7,i:5},{s:8,i:6},{s:9,i:7}],
+      bars:[0,4,8], pulses:[0,2,4,6,8,10], accents:[0,4,8],
+      caption:"Forcing every stress onto a downbeat costs a rest, a three-beat hold on <b>bout</b>, and any sense that this was ever speech. The words survive. The phrasing does not."
+    },
+    {
+      id:"fivefour", meter:"5/4", fit:"stretched",
+      role:"stresses on beats 1, 3 and 5",
+      cycle:10,
+      places:[{s:-1,i:0},{s:0,i:1},{s:1,i:2},{s:3,i:3},{s:4,i:4,hold:3},{s:7,i:5},{s:8,i:6},{s:9,i:7}],
+      bars:[0], pulses:[0,2,4,6,8], accents:[0,4],
+      caption:"The tidiest odd-meter fit here: three stresses, three odd beats, one bar. Getting there means holding <b>bout</b> for a beat and a half, which makes the preposition the longest note in the line."
+    },
+    {
+      id:"twelveeight", meter:"12/8", fit:"stretched",
+      role:"shuffle — stretched across four pulses",
+      cycle:12,
+      places:[{s:-1,i:0},{s:0,i:1},{s:1,i:2},{s:5,i:3},{s:6,i:4,hold:2},{s:8,i:5},{s:9,i:6},{s:10,i:7}],
+      bars:[0], pulses:[0,3,6,9], accents:[0,6],
+      caption:"Blues phrasing: <b>pedantic</b> takes two pulses to itself, then the rest of the line hurries in. <b>bout</b> and <b>tis</b> arrive one pulse apart — long, long, quick-quick."
+    }
+  ];
+
+  /* ---------------- audio ---------------- */
+  var ctx = null, master = null, noiseBuf = null, live = [];
+
+  function audio(){
+    if(ctx) return ctx;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC){ document.getElementById("fail").hidden = false; return null; }
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 0.7;
+    var comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.ratio.value = 5; comp.release.value = 0.2;
+    master.connect(comp); comp.connect(ctx.destination);
+    var n = ctx.sampleRate * 0.3, buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+    for(var i=0;i<n;i++) d[i] = Math.random()*2-1;
+    noiseBuf = buf;
+    return ctx;
+  }
+
+  function track(node){ live.push(node); }
+
+  function syllable(t, stressed, dur){
+    var g = ctx.createGain();
+    var lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = stressed ? 1900 : 1250;
+    g.connect(lp); lp.connect(master);
+    var peak = stressed ? 0.5 : 0.15;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    var o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    o1.type = "triangle"; o1.frequency.value = stressed ? 233 : 220;
+    o2.type = "sine";     o2.frequency.value = (stressed ? 233 : 220) * 2;
+    var g2 = ctx.createGain(); g2.gain.value = 0.28;
+    o1.connect(g); o2.connect(g2); g2.connect(g);
+    o1.start(t); o2.start(t); o1.stop(t+dur+0.05); o2.stop(t+dur+0.05);
+    track(o1); track(o2);
+
+    // consonant transient, so onsets read clearly
+    var src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    var bp = ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=2400; bp.Q.value=0.8;
+    var ng = ctx.createGain();
+    ng.gain.setValueAtTime(stressed ? 0.16 : 0.06, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+    src.connect(bp); bp.connect(ng); ng.connect(master);
+    src.start(t); src.stop(t+0.06); track(src);
+  }
+
+  function click(t, accent){
+    var src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    var bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = accent ? 2700 : 1700;
+    bp.Q.value = 6;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(accent ? 0.3 : 0.13, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t); src.stop(t+0.08); track(src);
+  }
+
+  /* ---------------- formant voice ----------------
+     A small vocal-tract model: a sawtooth glottal source through three
+     parallel bandpass filters tuned to F1/F2/F3, with noise for the stops
+     and fricatives. Crude, but it runs on the audio clock, so every onset
+     lands exactly where it was scheduled.                                */
+
+  var VOW = {
+    schwa:[500,1500,2500],   // pe, a, sta
+    ae:   [660,1700,2400],   // dan
+    ih:   [400,1900,2550],   // tic, tis, tics
+    ah:   [730,1090,2440],   // bout, opening
+    uh:   [440,1020,2240]    // bout, closing
+  };
+  var BW = [90,110,150], FG = [1,0.42,0.18];
+
+  var STOP = {
+    p:{f:900, q:1.2,  v:false}, b:{f:800, q:1.2, v:true},
+    t:{f:3900,q:1.4,  v:false}, d:{f:3300,q:1.4, v:true},
+    k:{f:2100,q:2.2,  v:false}
+  };
+  var D_STOP_V = 0.018, D_STOP_U = 0.030, D_FRIC = 0.085;
+
+  var PHON = {
+    pe:  {on:[["stop","p"]],               v:"schwa",          coda:[]},
+    dan: {on:[["stop","d"]],               v:"ae",             coda:[["nasal"]]},
+    tic: {on:[["stop","t"]],               v:"ih",             coda:[["stop","k"]]},
+    a:   {on:[],                           v:"schwa",          coda:[]},
+    bout:{on:[["stop","b"]],               v:"ah", v2:"uh",    coda:[["stop","t"]]},
+    sta: {on:[["fric"],["stop","t"]],      v:"schwa",          coda:[]},
+    tis: {on:[["stop","t"]],               v:"ih",             coda:[["fric"]]},
+    tics:{on:[["stop","t"]],               v:"ih",             coda:[["stop","k"],["fric"]]}
+  };
+  // pe  dan  tic   a   bout  sta  tis  tics
+  var F0 = [116, 139, 124, 118, 147, 120, 131, 108];
+
+  function segDur(seg){
+    if(seg[0] === "fric")  return D_FRIC;
+    if(seg[0] === "nasal") return 0.055;
+    return STOP[seg[1]].v ? D_STOP_V : D_STOP_U;
+  }
+  function leadIn(text){
+    var p = PHON[text], d = 0;
+    for(var i=0;i<p.on.length;i++) d += segDur(p.on[i]);
+    return d;
+  }
+
+  function noiseBurst(t, freq, q, peak, dur, attack){
+    var src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = freq; bp.Q.value = q;
+    var g = ctx.createGain();
+    if(attack){
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    } else {
+      g.gain.setValueAtTime(peak, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t); src.stop(t + dur + 0.05); track(src);
+  }
+
+  function voiced(t, dur, f0, from, to, peak){
+    var osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(f0, t);
+    osc.frequency.linearRampToValueAtTime(f0 * 0.97, t + dur);
+    var tilt = ctx.createBiquadFilter();
+    tilt.type = "lowpass"; tilt.frequency.value = 3600;
+    var env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(peak, t + 0.018);
+    env.gain.setValueAtTime(peak, t + Math.max(0.02, dur - 0.05));
+    env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(tilt);
+    for(var i=0;i<3;i++){
+      var f = ctx.createBiquadFilter();
+      f.type = "bandpass";
+      f.frequency.setValueAtTime(from[i], t);
+      if(to) f.frequency.linearRampToValueAtTime(to[i], t + dur * 0.8);
+      f.Q.value = from[i] / BW[i];
+      var fg = ctx.createGain(); fg.gain.value = FG[i] * 3.2;
+      tilt.connect(f); f.connect(fg); fg.connect(env);
+    }
+    env.connect(master);
+    osc.start(t); osc.stop(t + dur + 0.05); track(osc);
+  }
+
+  // t is the moment the vowel should land — the syllable's perceptual centre.
+  function speak(t, idx, vowelDur){
+    var text = SYLL[idx].t, p = PHON[text], stressed = SYLL[idx].stress;
+    var peak = stressed ? 0.85 : 0.42;
+    var f0 = F0[idx] * (stressed ? 1 : 0.97);
+
+    var c = t - leadIn(text);
+    p.on.forEach(function(seg){
+      var d = segDur(seg);
+      if(seg[0] === "fric"){
+        noiseBurst(c, 6200, 1.2, 0.14, d, 0.03);
+      } else {
+        var s = STOP[seg[1]];
+        noiseBurst(c, s.f, s.q, s.v ? 0.16 : 0.30, 0.02);
+        if(!s.v) noiseBurst(c + 0.008, 1800, 0.7, 0.06, 0.026); // aspiration
+      }
+      c += d;
+    });
+
+    var vd = Math.max(0.07, vowelDur);
+    voiced(t, vd, f0, VOW[p.v], p.v2 ? VOW[p.v2] : null, peak);
+
+    var e = t + vd;
+    p.coda.forEach(function(seg){
+      var d = segDur(seg);
+      if(seg[0] === "fric"){
+        noiseBurst(e, 6200, 1.2, 0.13, d, 0.03);
+      } else if(seg[0] === "nasal"){
+        voiced(e - 0.01, d, f0 * 0.97, [260,1100,2400], null, peak * 0.5);
+      } else {
+        var s = STOP[seg[1]];
+        noiseBurst(e + 0.01, s.f, s.q, s.v ? 0.10 : 0.18, 0.02);
+      }
+      e += d;
+    });
+  }
+
+  /* ---------------- transport ---------------- */
+  var state = {
+    cfg:null, t0:0, eighth:0.286, timer:null, raf:null,
+    nextIter:0, clicks:true, loop:true, lit:null, voice:true
+  };
+
+  function eighthDur(){ return 60 / Number(document.getElementById("tempo").value); }
+
+  function scheduleIteration(cfg, T){
+    var E = state.eighth;
+    cfg.places.forEach(function(p){
+      var syl = SYLL[p.i], at = T + p.s*E;
+      if(state.voice){
+        var vd = p.hold ? E*p.hold*0.68
+               : syl.stress ? Math.min(0.20, E*0.62)
+               : Math.min(0.105, E*0.42);
+        speak(at, p.i, vd);
+      } else {
+        var dur = p.hold ? E*p.hold*0.92 : (syl.stress ? 0.17 : 0.10);
+        syllable(at, syl.stress, Math.max(0.09, dur));
+      }
+    });
+    if(state.clicks){
+      cfg.pulses.forEach(function(s){
+        click(T + s*E, cfg.accents.indexOf(s) > -1);
+      });
+    }
+  }
+
+  function stopAll(){
+    if(state.timer){ clearInterval(state.timer); state.timer = null; }
+    if(state.raf){ cancelAnimationFrame(state.raf); state.raf = null; }
+    live.forEach(function(n){ try{ n.stop(ctx.currentTime); }catch(e){} });
+    live = [];
+    state.cfg = null;
+    if(state.lit){ state.lit.classList.remove("lit"); state.lit = null; }
+    document.querySelectorAll(".play").forEach(function(b){
+      b.dataset.on = "false";
+      b.querySelector(".label").textContent = "Play";
+      b.querySelector(".glyph").textContent = "▶";
+    });
+  }
+
+  function play(cfg, btn){
+    var wasSame = state.cfg && state.cfg.id === cfg.id;
+    stopAll();
+    if(wasSame) return;
+    if(!audio()) return;
+    if(ctx.state === "suspended") ctx.resume();
+
+    state.eighth = eighthDur();
+    state.cfg = cfg;
+    state.t0 = ctx.currentTime + 0.25 + state.eighth; // room for the pickup
+    state.nextIter = state.t0;
+
+    scheduleIteration(cfg, state.nextIter);
+    state.nextIter += cfg.cycle * state.eighth;
+
+    btn.dataset.on = "true";
+    btn.querySelector(".label").textContent = "Stop";
+    btn.querySelector(".glyph").textContent = "■";
+
+    state.timer = setInterval(function(){
+      if(!state.cfg) return;
+      if(!state.loop){
+        if(ctx.currentTime > state.nextIter + 0.2) stopAll();
+        return;
+      }
+      if(state.nextIter < ctx.currentTime + 0.4){
+        scheduleIteration(cfg, state.nextIter);
+        state.nextIter += cfg.cycle * state.eighth;
+      }
+    }, 40);
+
+    var cells = document.querySelectorAll("#g-"+cfg.id+" .cell");
+    (function frame(){
+      state.raf = requestAnimationFrame(frame);
+      if(!state.cfg) return;
+      var el = ctx.currentTime - state.t0;
+      var pos = Math.floor(el / state.eighth);
+      var slot = ((pos % cfg.cycle) + cfg.cycle) % cfg.cycle;
+      if(el < -state.eighth) slot = -99;
+      var idx = (el < 0) ? 0 : slot + 1; // cell 0 is the pickup
+      var target = (idx >= 0 && idx < cells.length) ? cells[idx] : null;
+      if(target !== state.lit){
+        if(state.lit) state.lit.classList.remove("lit");
+        if(target) target.classList.add("lit");
+        state.lit = target;
+      }
+    })();
+  }
+
+  /* ---------------- rendering ---------------- */
+  function grid(cfg){
+    var bySlot = {};
+    cfg.places.forEach(function(p){ bySlot[p.s] = p; });
+    var html = '<div class="scroll"><div class="grid" id="g-'+cfg.id+'" style="--n:'+(cfg.cycle+1)+'">';
+    for(var s=-1;s<cfg.cycle;s++){
+      var p = bySlot[s], syl = p ? SYLL[p.i] : null;
+      var cls = "cell";
+      if(s === -1) cls += " pickup";
+      if(cfg.bars.indexOf(s) > -1) cls += " bar";
+      if(cfg.pulses.indexOf(s) > -1) cls += (cfg.accents.indexOf(s) > -1) ? " pulse-accent" : " pulse-on";
+      html += '<div class="'+cls+'">';
+      html += '<div class="mark">'+(syl ? (syl.stress ? "/" : "×") : "")+'</div>';
+      html += '<div class="syl '+(syl ? (syl.stress ? "stress" : "weak") : "")+'">'+(syl ? syl.t : "&nbsp;")+'</div>';
+      html += '<div class="bed">'+(p && p.hold ? '<span class="hold" style="right:'+(8 - 100*(p.hold-1))+'%"></span>' : '')
+            + ((cfg.pulses.indexOf(s) > -1) ? '<span class="pulse"></span>' : '')+'</div>';
+      html += '</div>';
+    }
+    return html + '</div></div>';
+  }
+
+  var host = document.getElementById("settings");
+  SETTINGS.forEach(function(cfg){
+    if(cfg.group){
+      var g = document.createElement("div");
+      g.className = "group";
+      g.innerHTML = '<h2>'+cfg.group+'</h2><p>'+cfg.groupNote+'</p>';
+      host.appendChild(g);
+    }
+    var sec = document.createElement("section");
+    sec.className = "setting";
+    sec.innerHTML =
+      '<div class="head">' +
+        '<span class="meter">'+cfg.meter+'</span>' +
+        '<span class="role">'+cfg.role+'</span>' +
+        '<span class="tag" data-fit="'+cfg.fit+'">'+cfg.fit+'</span>' +
+        '<button class="play" data-on="false" data-id="'+cfg.id+'">' +
+          '<span class="glyph">▶</span><span class="label">Play</span></button>' +
+      '</div>' +
+      grid(cfg) +
+      '<p class="caption">'+cfg.caption+'</p>';
+    host.appendChild(sec);
+    sec.querySelector(".play").addEventListener("click", function(){ play(cfg, this); });
+  });
+
+  document.getElementById("closing").textContent =
+    "The pickup syllable “pe” is shown faded at the left of each grid; it belongs to the bar before. "
+    + "Tempo is measured in syllable slots per minute, so the eighth note stays the same length in every "
+    + "setting and only the barlines change. In voice mode each syllable is placed by its vowel rather than its "
+    + "first consonant, which is where the ear actually hears the beat — the s of “sta” starts before "
+    + "its slot so that the vowel arrives on time.";
+
+  /* ---------------- controls ---------------- */
+  var tempo = document.getElementById("tempo"), tempoOut = document.getElementById("tempoOut");
+  function showTempo(){ tempoOut.textContent = tempo.value + " syll/min"; }
+  showTempo();
+  tempo.addEventListener("input", function(){
+    showTempo();
+    if(state.cfg){ var c = state.cfg; var b = document.querySelector('.play[data-id="'+c.id+'"]'); stopAll(); play(c, b); }
+  });
+
+  function bindToggle(id, key){
+    var b = document.getElementById(id);
+    b.addEventListener("click", function(){
+      var on = b.getAttribute("aria-pressed") === "true";
+      b.setAttribute("aria-pressed", String(!on));
+      state[key] = !on;
+      if(state.cfg){ var c = state.cfg; var pb = document.querySelector('.play[data-id="'+c.id+'"]'); stopAll(); play(c, pb); }
+    });
+  }
+  bindToggle("clickBtn","clicks");
+  bindToggle("loopBtn","loop");
+
+  function restart(){
+    if(!state.cfg) return;
+    var c = state.cfg, b = document.querySelector('.play[data-id="'+c.id+'"]');
+    stopAll(); play(c, b);
+  }
+  var tone = document.getElementById("modeTone"), vox = document.getElementById("modeVoice");
+  function setMode(useVoice){
+    state.voice = useVoice;
+    vox.setAttribute("aria-pressed", String(useVoice));
+    tone.setAttribute("aria-pressed", String(!useVoice));
+    restart();
+  }
+  tone.addEventListener("click", function(){ setMode(false); });
+  vox.addEventListener("click", function(){ setMode(true); });
+})();
+</script>
+</body>
+</html>
+;6..96,700&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ground:#141B2D;
